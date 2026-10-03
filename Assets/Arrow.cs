@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-enum ArrowState {load, shooting, shot, stuck, none}
+enum ArrowState {load, shooting, shot, stuck, none, unload}
 public class Arrow : MonoBehaviour
 {
     Rigidbody rb;
@@ -37,6 +37,13 @@ public class Arrow : MonoBehaviour
     state = ArrowState.shot;
 }
 
+    public void Unload()
+    {
+        state = ArrowState.unload;
+        rb.isKinematic = false;
+        rb.detectCollisions = true;
+        rb.AddForce(Vector3.up * 50f);
+    }
     public void Shoot(float f, int k)
     {
         StartCoroutine(ApplyForceForFrames(rb, transform.forward * f, k));

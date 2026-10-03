@@ -118,8 +118,8 @@ GameObject:
   - component: {fileID: 1544878960596739201}
   - component: {fileID: 3315819397693047561}
   - component: {fileID: 801687168563000370}
-  - component: {fileID: 8711571036371362797}
-  - component: {fileID: 2883628035804760957}
+  - component: {fileID: 7774535893757273748}
+  - component: {fileID: -1368770260049299189}
   m_Layer: 0
   m_Name: arrow
   m_TagString: Arrow
@@ -135,7 +135,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9152018175256534145}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: -0.6427876, w: 0.7660445}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -143,7 +143,7 @@ Transform:
   - {fileID: 2385786262048288586}
   - {fileID: 8725962680019113370}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -80}
 --- !u!33 &1544878960596739201
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -226,7 +226,7 @@ CapsuleCollider:
   m_Height: 1.15
   m_Direction: 2
   m_Center: {x: -0.0014284141, y: -0.0005599968, z: 0.56}
---- !u!54 &8711571036371362797
+--- !u!54 &7774535893757273748
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -235,7 +235,7 @@ Rigidbody:
   m_GameObject: {fileID: 9152018175256534145}
   serializedVersion: 5
   m_Mass: 1
-  m_LinearDamping: 1
+  m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0.7}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -248,12 +248,12 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 0
   m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 2
---- !u!114 &2883628035804760957
+  m_CollisionDetection: 0
+--- !u!114 &-1368770260049299189
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -265,4 +265,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09769beffacc68343a20fa141c48a3b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Arrow
-  lateralDrag: 20
+  lateralDrag: -20
