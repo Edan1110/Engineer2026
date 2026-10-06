@@ -1,140 +1,141 @@
 using UnityEngine;
-using TMPro;
-using System.Data;
-using NUnit.Framework.Constraints;
+using UnityEngine.InputSystem; 
+using System.Collections;
+
+
 
 public class Player : MonoBehaviour
 {
+
     public float mvSpeed, gxzero, gxcoef, gyzero, gycoef, lcoef, scoef, reloadCooldown;
-    float x, y, d = 0;
-    // public float 
+    int lzero, l, cur = -1, prev, 
+    speed = Animator.StringToHash("Speed"), 
+    animSpeed = Animator.StringToHash("animSpeed"), 
+    draw = Animator.StringToHash("draw");
     int[] vals;
     public int duration, toLoad, toShoot;
-    int lzero, l, cur = -1, prev;
-    Arrow curArrow = null;
-
+    float mag, d = 0, ll;
+    bool movable = true, lset = false;
     Rigidbody rb;
+    Vector3 tl;
 
-    public GameObject Arrow;
-    bool isMoving = false, knockback = false, lset = false;
+    SC rx = new SC(0, 0.9f, 4, 0.1f), ry = new SC(0, 0.9f, 4, 0.1f);
+    public Transform CB;
+    Bow bow;
+    Animator cameraAnim, CBAnim;
 
-    int knockbackCount = 0;
-    Vector3 startVel, targetVel;
-
-    Transform camera, bow;
-
-    public TMP_Text text;
-        SC rx, ry;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        // rb.maxLinearVelocity = mvSpeed;
-        camera = transform.GetChild(0);
-        bow = camera.GetChild(0);
         vals = new int[duration];
-        rx = new SC(0, 0.9f, 4, 0.1f);
-        ry = new SC(0, 0.9f, 4, 0.1f);
-        // delta = 0;
-        
-        
-        // cameraAnim = camera.GetComponent<Animator>();
-        // shaker = pivot.GetComponent<CameraShake>();
+        P.camera = CB.GetChild(1);
+        rb = GetComponent<Rigidbody>();
+        bow = CB.GetChild(0).GetComponent<Bow>();
+        cameraAnim = P.camera.GetComponent<Animator>();
+        CBAnim = CB.GetComponent<Animator>();
+
+        // t.text = "HH";
     }
     
 
     // Update is called once per frame
     void Update()
     {
+        //Initial Conf
         if(!P.toStart) return;
         if (!lset)
         {
             lzero = P.idata[0];
             lset = true;
         }
-        // Debug.Log("Hello");
-
+        
+        //Loadcell Values
         if(++cur == duration) cur = 0;
         l = lzero - (vals[cur] = P.idata[0]);
-
         // string s = "";
-        // for(int i = 0; i<duration; i++)
-        // {
-        //     s+=vals[i].ToString() + ", ";
-        // }
-
-        // Debug.Log(P.idata[0]);
         
+        // t.text = s;
+        //Movement
+        tl = (P.idata[1]-512)/512f * transform.right + (512-P.idata[2])/512f * transform.forward;
+        mag = tl.magnitude;
+        if (movable && mag>0.2f)
+        {
+            if(bow.isNull())
+            {
+                rb.linearVelocity= tl * mvSpeed;
+                cameraAnim.SetFloat(speed, mag);
+                cameraAnim.SetFloat(animSpeed, mag*0.45f + 0.55f);
+            }
+            else
+            {
+                rb.linearVelocity = tl * mvSpeed * 0.6f;
+                cameraAnim.SetFloat(speed, mag * 0.4f);
+                cameraAnim.SetFloat(animSpeed, mag*0.4f + 0.4f);
+            }
+        }
+        else
+        {   
+            cameraAnim.SetFloat(speed, 0f);
+        }
 
-        // P.vib = 122; 
-
-        rb.linearVelocity
-        = ((452 < P.idata[1] && P.idata[1] < 572) ? 0 : (P.idata[1] - 512) * mvSpeed) * transform.right +
-        ((452 < P.idata[2] && P.idata[2] < 572) ? 0 : (512-P.idata[2]) * mvSpeed) * transform.forward;
-        // accel
-        // transform.Translate(x, 0, y);
-        // Vector3.Dot(rb.linearVelocity, )
-        // Vector3.Project(rb.linearVelocity, p)
-
-        // if (knockback)
-        // {
-        //     if(knockbackCount == 0){
-        //         targetVel = transform.right * x + transform.forward * y;
-        //         startVel = rb.linearVelocity;
-        //     }
-        //     else
-        //     {
-        //         rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, targetVel, knockbackCount/100f);
-        //         if(knockbackCount == 100)
-        //         {
-        //             knockback = false;
-        //             knockbackCount = 0;
-        //         }
-        //     }
-        //     knockbackCount++;
-        // }
-        // else{
-        //     rb.linearVelocity = transform.right * x + transform.forward * y;
-            // Debug.Log(P.fdata[0]);
-        // }
+        //Rotation
         rx.update(P.fdata[0] - gxzero);
         ry.update(P.fdata[2] - gyzero);
-        
         transform.eulerAngles = Vector3.up *ry.value * gycoef;
-        camera.localEulerAngles = Vector3.right * rx.value * gxcoef;
- 
-        if(curArrow == null){
+        CB.localEulerAngles = Vector3.right * rx.value * gxcoef;
+
+        if (bow.isNull())
+        {
             d += Time.deltaTime;
             if(l>toLoad && d > reloadCooldown)
             {
-                Draw();
-            }
+                StartCoroutine(bow.Load(Random.value < 0.5f));
+                cameraAnim.speed = 0f;
+            }   
         }
         else{
-            curArrow.transform.localPosition = new Vector3(l*lcoef, -1, 0);
-            
-            // Debug.Log(vals[cur] - vals[prev = (cur == duration-1) ? 0 : cur+1]);
-            if(vals[cur] - (prev = vals[(cur == duration-1) ? 0 : cur+1]) > toShoot){
-                d = 0;
+            ll = l * lcoef;
+            //Shoot
+            if(vals[cur] - (prev = vals[(cur == duration-1) ? 0 : cur+1]) > toShoot || P.stickbtn){
+                cameraAnim.speed = 1f;
+                bow.Shoot(scoef);
+                ll = 0f;
+                CBAnim.SetFloat(draw, 0);
+                StartCoroutine(Knockback(l * scoef));
+                // Debug.Log(l * scoef);
+                // Knockback(100000);
                 Debug.Log(lzero - prev);
-                // Destroy(curArrow.gameObject);
-                curArrow.Shoot((lzero-prev) * scoef, duration);
-                curArrow.transform.SetParent(null, true);
-                curArrow = null;
+                P.vib = 0;
+                d = 0f;
             }
+            //Unload
+            else if (l < toLoad)
+            {
+                cameraAnim.speed = 1f;
+                d = 0f;
+                P.vib = 0;
+                ll = 0f;
+                CBAnim.SetFloat(draw, 0);
+                bow.Unload();
+            }
+            //Set
+            else
+            {
+                bow.setLoad(ll);
+                CBAnim.SetFloat(draw, ll);
+                P.vib = (byte)(ll * 256);
+            }
+
         }
-
-    text.text = $"{l}\n{P.idata[2]}, {P.idata[1]}";
-        
     }
 
-    void Draw()
+    IEnumerator Knockback(float f)
     {
-        curArrow = Instantiate(Arrow).GetComponent<Arrow>();
-        curArrow.transform.SetParent(bow, true);
-        curArrow.transform.localPosition = new Vector3(0, -1, 0);
-        // curArrow.transform.position = camera.position + camera.forward * 0.7f + camera.right * 0.2f;
-
+        movable = false;
+        rb.linearVelocity = Vector3.zero;
+        rb.AddForce(-f * P.camera.forward);
+        yield return new WaitForSeconds(reloadCooldown);
+        movable = true;
     }
-    float cutoff(float v, float cut){ return (v < cut && v > -cut) ? 0f : v;}
+
 }

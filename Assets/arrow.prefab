@@ -234,7 +234,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9152018175256534145}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 0.05
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0.7}
@@ -252,7 +252,7 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 2
 --- !u!114 &-1368770260049299189
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -265,4 +265,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09769beffacc68343a20fa141c48a3b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Arrow
-  lateralDrag: -20
+  rb: {fileID: 0}
+  state: 6
+  tailDrag: 10

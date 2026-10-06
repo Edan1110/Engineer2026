@@ -1,16 +1,20 @@
 using UnityEngine;
 using System.IO.Ports;
 using System;
-using NUnit.Framework.Constraints;
 
 public interface Target
 {
-    public void onHit(GameObject arrow);
+    public void onHit(
+    Vector3 hitPoint,
+    Vector3 hitNormal,
+    Vector3 velocity,
+    Vector3 angularVelocity,
+    Arrow arrow);
 }
 
 public class P : MonoBehaviour
 {
-    static public GameObject player;
+    static public Transform player, camera;
 
     static public AudioSource[] auso;
 
@@ -37,7 +41,7 @@ public class P : MonoBehaviour
     {
         idata = new int[3];
         fdata = new float[6];
-        player = gameObject;
+        player = transform;
     }
 
     void Start()

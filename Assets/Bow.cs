@@ -1,29 +1,36 @@
-using System;
-using UnityEditor.Rendering;
+
 using UnityEngine;
+using System.Collections;
+
 
 public class Bow : MonoBehaviour
 {
-    public Transform camera, arrowBox, arrowPref;
+    [SerializeField] Transform arrowBox, arrowPref;
+    float loadf;
+    Transform topStr, botStr, mid, torustop, torusbot, midtop, midbot, arrowtr;
     Arrow arrow = null;
-
     Animator bowAnim, arrowAnim;
-    public bool load = false;
-    bool temp  = false;
-    public bool loadmod2 = false;
-    static readonly int bowload = Animator.StringToHash("load");   
-    static readonly int load2 = Animator.StringToHash("Load2");   
-    Transform arrowtr;
+    readonly int bowload = Animator.StringToHash("load"), load2 = Animator.StringToHash("Load2"), shoot = Animator.StringToHash("shoot");
+
 
 
     void Start()
     {
+        torustop = transform.GetChild(1);
+        torusbot = transform.GetChild(3);
+        topStr = transform.GetChild(4);
+        botStr = transform.GetChild(5);
+        mid = transform.GetChild(2);
+        midtop = mid.GetChild(0);
+        midbot = mid.GetChild(1);
         bowAnim = GetComponent<Animator>();   
         arrowAnim = arrowBox.GetComponent<Animator>();
 
     }
-    void Load()
+    public bool isNull(){return arrow==null;}
+    public IEnumerator Load(bool loadmod2)
     {
+        Debug.Log("Loading");
         arrowtr = Instantiate(arrowPref, arrowBox);
         arrowtr.localPosition = Vector3.zero;
         arrowtr.localEulerAngles = Vector3.back * 80;
@@ -33,32 +40,66 @@ public class Bow : MonoBehaviour
         bowAnim.SetBool(bowload, true);
         arrowAnim.SetBool(bowload, true);
         if(loadmod2) arrowAnim.SetTrigger(load2);
-        // arrowAnim.SetBool(loadnum, !arrowAnim.GetBool(loadnum))
-        // else if(!b && arrow != null) ;
+
+        yield return new WaitUntil(()=>arrowAnim.GetBool(LoadBehavior.loadComplete));
+        Debug.Log("Load!");
+        if(arrow != null) arrow.state = ArrowState.load;
     }
-    void Unload()
+
+    public void Unload()
     {
         bowAnim.SetBool(bowload, false);
         arrowAnim.SetBool(bowload, false);
-        arrow.transform.SetParent(null, true);
+        arrowtr.SetParent(null, true);
+        StartCoroutine(recoverString(10));
         arrow.Unload();
         arrow = null;
     }
-    // Update is called once per frame
-    void Update()
+
+    public void Shoot(float fcoef)
     {
-        // bowAnim.SetBool(bowload, load);
-        if(!temp && load)
-        {
-            Load();
+        if(arrow.state == ArrowState.load){
+            arrowtr.SetParent(null, true);
+            arrow.Shoot(loadf*fcoef);
+            StartCoroutine(recoverString(10));
+            bowAnim.SetTrigger(shoot);
+            bowAnim.SetBool(bowload, false);
+            arrowAnim.SetBool(bowload, false);
+            arrow = null;
         }
-        else if(temp && !load)
-        {
-            Unload();
-        }
-        temp = load;
-        // transform.position = camera.position + camera.forward *1f;
-        // transform.rotation = camera.rotation;
-        
     }
+    
+    IEnumerator recoverString(int k)
+    {
+        Vector3 s = mid.localPosition, d = Vector3.right * 6;
+        for(int i = 0; i<k; i++)
+        {
+            setMidPos(mid.parent.TransformPoint(Vector3.Lerp(s, d, i/(k-1f))));
+            yield return null;
+        }
+    }
+    void SetCylinderBetweenPoints(Transform cylinder, Vector3 a, Vector3 b)
+    {
+        Vector3 dir = b - a;
+        float length = dir.magnitude;
+
+        cylinder.position = (a + b) * 0.5f;
+
+        if (length > 0.0001f) cylinder.rotation = Quaternion.FromToRotation(Vector3.up, dir);
+
+        cylinder.localScale = new Vector3(0.2f/(1+length), length * 12.5f, 0.2f/(1+length));
+    }
+    void setMidPos(Vector3 pos)
+    {
+        mid.position = pos;
+        SetCylinderBetweenPoints(topStr, midtop.position, torustop.position);
+        SetCylinderBetweenPoints(botStr, midbot.position, torusbot.position);  
+    }
+    public void setLoad(float x)
+    {
+        loadf = x;
+        arrowtr.localPosition = Vector3.back * x;
+        if(arrow.state == ArrowState.load)setMidPos(arrowtr.position);
+    }
+
 }
