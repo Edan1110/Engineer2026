@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem; 
 using System.Collections;
 
 
@@ -7,15 +6,16 @@ using System.Collections;
 public class Player : MonoBehaviour
 {
 
-    public float mvSpeed, gxzero, gxcoef, gyzero, gycoef, lcoef, scoef, reloadCooldown;
-    int lzero, l, cur = -1, prev, 
-    speed = Animator.StringToHash("Speed"), 
+    float mvSpeed = Config.fdata[0], gxzero = Config.fdata[1],
+    gxcoef = Config.fdata[2], gyzero = Config.fdata[3], 
+    gycoef  = Config.fdata[4], lcoef = Config.fdata[5], 
+    scoef = Config.fdata[6], reloadCooldown = Config.fdata[7],
+    volCoef = Config.fdata[8], delta, mag, d = 0, ll, toLoad = Config.fdata[10], toShoot = Config.fdata[11];
+    int cur = -1, temp, speed = Animator.StringToHash("Speed"), 
     animSpeed = Animator.StringToHash("animSpeed"), 
-    draw = Animator.StringToHash("draw");
-    int[] vals;
-    public int duration, toLoad, toShoot;
-    float mag, d = 0, ll;
-    bool movable = true, lset = false;
+    draw = Animator.StringToHash("draw"), duration = Config.idata[0];
+    float[] vals;
+    bool movable = true;
     Rigidbody rb;
     Vector3 tl;
 
@@ -27,14 +27,12 @@ public class Player : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        vals = new int[duration];
+        vals = new float[duration];
         P.camera = CB.GetChild(1);
         rb = GetComponent<Rigidbody>();
         bow = CB.GetChild(0).GetComponent<Bow>();
         cameraAnim = P.camera.GetComponent<Animator>();
         CBAnim = CB.GetComponent<Animator>();
-
-        // t.text = "HH";
     }
     
 
@@ -43,20 +41,12 @@ public class Player : MonoBehaviour
     {
         //Initial Conf
         if(!P.toStart) return;
-        if (!lset)
-        {
-            lzero = P.idata[0];
-            lset = true;
-        }
-        
         //Loadcell Values
         if(++cur == duration) cur = 0;
-        l = lzero - (vals[cur] = P.idata[0]);
-        // string s = "";
-        
-        // t.text = s;
+        vals[cur] = P.fdata[6];
+
         //Movement
-        tl = (P.idata[1]-512)/512f * transform.right + (512-P.idata[2])/512f * transform.forward;
+        tl = (P.idata[0]-512)/512f * transform.right + (512-P.idata[1])/512f * transform.forward;
         mag = tl.magnitude;
         if (movable && mag>0.2f)
         {
@@ -87,29 +77,30 @@ public class Player : MonoBehaviour
         if (bow.isNull())
         {
             d += Time.deltaTime;
-            if(l>toLoad && d > reloadCooldown)
+            if(vals[cur]>toLoad && d > reloadCooldown)
             {
+                P.auso[0].Play();
                 StartCoroutine(bow.Load(Random.value < 0.5f));
                 cameraAnim.speed = 0f;
             }   
         }
         else{
-            ll = l * lcoef;
+            ll = vals[cur] * lcoef;
             //Shoot
-            if(vals[cur] - (prev = vals[(cur == duration-1) ? 0 : cur+1]) > toShoot || P.stickbtn){
+            if((delta = vals[cur] - vals[(cur == duration-1) ? 0 : cur+1]) > toShoot || P.stickbtn){
                 cameraAnim.speed = 1f;
                 bow.Shoot(scoef);
                 ll = 0f;
                 CBAnim.SetFloat(draw, 0);
-                StartCoroutine(Knockback(l * scoef));
-                // Debug.Log(l * scoef);
-                // Knockback(100000);
-                Debug.Log(lzero - prev);
+                StartCoroutine(Knockback(vals[cur] * scoef));
+                temp = Random.Range(3, 5);
+                P.auso[temp].volume = volCoef * vals[cur];
+                P.auso[temp].Play();
                 P.vib = 0;
                 d = 0f;
             }
             //Unload
-            else if (l < toLoad)
+            else if (vals[cur] < toLoad)
             {
                 cameraAnim.speed = 1f;
                 d = 0f;

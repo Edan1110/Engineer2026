@@ -1,6 +1,4 @@
 using UnityEngine;
-using System.Collections;
-using System.Drawing.Drawing2D;
 
 public enum ArrowState {load, shot, hit, none, unload, loading}
 public class Arrow : MonoBehaviour
@@ -12,7 +10,6 @@ public class Arrow : MonoBehaviour
     Target t;
     
     Vector3 tailVelocity;
-    public float tailDrag;
 
     void Awake()
     {
@@ -46,10 +43,11 @@ public class Arrow : MonoBehaviour
 
     void FixedUpdate()
     {
+        if(transform.position.y < -20) Destroy(this);
         if (state == ArrowState.shot){
             Vector3 temp = rb.GetPointVelocity(tail.position);
             tailVelocity = temp - Vector3.Project(temp, transform.forward);
-            rb.AddForceAtPosition(-tailDrag * tailVelocity.magnitude * tailVelocity, tail.position);
+            rb.AddForceAtPosition(-Config.fdata[9] * tailVelocity.magnitude * tailVelocity, tail.position);
         }
     }
 
@@ -82,13 +80,7 @@ public class Arrow : MonoBehaviour
                 rb.angularVelocity = Vector3.zero;
                 rb.isKinematic = true;
             }
-            else t.onHit(
-                tipContact.point,       // 맞은 월드 좌표
-                tipContact.normal,      // 표면 법선
-                rb.linearVelocity,      // 충돌 순간 속도
-                rb.angularVelocity,     // 충돌 순간 각속도
-                this                    // 맞힌 화살
-            );
+            else t.onHit(tipContact, this);
             state = ArrowState.hit;
   
         }

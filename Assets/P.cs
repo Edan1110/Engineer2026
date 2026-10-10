@@ -1,14 +1,13 @@
 using UnityEngine;
 using System.IO.Ports;
 using System;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public interface Target
 {
     public void onHit(
-    Vector3 hitPoint,
-    Vector3 hitNormal,
-    Vector3 velocity,
-    Vector3 angularVelocity,
+    ContactPoint contact,
     Arrow arrow);
 }
 
@@ -17,12 +16,13 @@ public class P : MonoBehaviour
     static public Transform player, camera;
 
     static public AudioSource[] auso;
+    Keyboard k;
 
     [Header("Serial")]
     SerialPort serial;
     private const int PacketSize = 38;
 
-    public string port;
+
     public static bool toStart = false;
 
     [Header("Received Data")]
@@ -39,25 +39,26 @@ public class P : MonoBehaviour
 
     private void Awake()
     {
-        idata = new int[3];
-        fdata = new float[6];
+        idata = new int[2];
+        fdata = new float[7];
         player = transform;
     }
 
     void Start()
     {
+        k = Keyboard.current;
         auso = GetComponents<AudioSource>();
 
         try
         {
-            serial = new SerialPort(port, 115200)
+            serial = new SerialPort(Config.port, 115200)
             {
                 ReadTimeout = 10,
                 WriteTimeout = 10
             };
 
             serial.Open();
-            Debug.Log($"Serial connected: {port}");
+            Debug.Log($"Serial connected: {Config.port}");
         }
         catch (Exception e)
         {
@@ -67,6 +68,7 @@ public class P : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (k.sKey.wasPressedThisFrame) SceneManager.LoadScene("Config");
         if (serial == null || !serial.IsOpen)
             return;
 
@@ -111,13 +113,12 @@ public class P : MonoBehaviour
                 }
 
                 
-                for(int i = 0; i<6; i++)
+                for(int i = 0; i<7; i++)
                 {
                     fdata[i] = BitConverter.ToSingle(temp, 1+i*4);   
                 }
                 idata[0] = BitConverter.ToInt32(temp, 33);
                 idata[1] = BitConverter.ToInt32(temp, 25);
-                idata[2] = BitConverter.ToInt32(temp, 29);
 
                 toStart = true;
                 // 이번 FixedUpdate에서는 한 패킷만 사용
