@@ -29,7 +29,9 @@ public class Arrow : MonoBehaviour
         state = ArrowState.unload;
         rb.isKinematic = false;
         rb.detectCollisions = true;
-        rb.AddForce(Vector3.up * 50f);
+        // rb.linearVelocity = rb.
+        // rb.AddForce(Vector3.up * 50f);
+        StartCoroutine(Ground.destroyAfter(3, gameObject));
     }
 
     public void Shoot(float f)
@@ -43,7 +45,8 @@ public class Arrow : MonoBehaviour
 
     void FixedUpdate()
     {
-        if(transform.position.y < -20) Destroy(this);
+        // return;
+        if(transform.position.y < -20) Destroy(gameObject);
         if (state == ArrowState.shot){
             Vector3 temp = rb.GetPointVelocity(tail.position);
             tailVelocity = temp - Vector3.Project(temp, transform.forward);
@@ -54,7 +57,7 @@ public class Arrow : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if(state == ArrowState.load || state == ArrowState.hit) return;
+        if(state == ArrowState.load || state == ArrowState.hit || state == ArrowState.unload) return;
         if(collision.gameObject.CompareTag("Target")){
             bool tipHit = false;
             ContactPoint tipContact = default;

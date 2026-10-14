@@ -5,6 +5,7 @@ using System.Collections;
 
 public class Player : MonoBehaviour
 {
+    
 
     float mvSpeed = Config.fdata[0], gxzero = Config.fdata[1],
     gxcoef = Config.fdata[2], gyzero = Config.fdata[3], 
@@ -15,7 +16,7 @@ public class Player : MonoBehaviour
     animSpeed = Animator.StringToHash("animSpeed"), 
     draw = Animator.StringToHash("draw"), duration = Config.idata[0];
     float[] vals;
-    bool movable = true;
+    bool movable = true, paused = false;
     Rigidbody rb;
     Vector3 tl;
 
@@ -45,8 +46,12 @@ public class Player : MonoBehaviour
         if(++cur == duration) cur = 0;
         vals[cur] = P.fdata[6];
 
+        // Debug.Log(vals[cur]);
+
         //Movement
+        tl  = Vector3.zero;
         tl = (P.idata[0]-512)/512f * transform.right + (512-P.idata[1])/512f * transform.forward;
+        // Debug.Log(P.idata[0]+" "+P.idata[1]);
         mag = tl.magnitude;
         if (movable && mag>0.2f)
         {
@@ -69,14 +74,17 @@ public class Player : MonoBehaviour
         }
 
         //Rotation
-        rx.update(P.fdata[0] - gxzero);
-        ry.update(P.fdata[2] - gyzero);
-        transform.eulerAngles = Vector3.up *ry.value * gycoef;
-        CB.localEulerAngles = Vector3.right * rx.value * gxcoef;
+        if(!paused){
+            rx.update(P.fdata[0] - gxzero);
+            ry.update(P.fdata[2] - gyzero);
+            transform.eulerAngles = Vector3.up *ry.value * gycoef;
+            CB.localEulerAngles = Vector3.right * rx.value * gxcoef;
+        }
 
         if (bow.isNull())
         {
             d += Time.deltaTime;
+
             if(vals[cur]>toLoad && d > reloadCooldown)
             {
                 P.auso[0].Play();
@@ -86,13 +94,17 @@ public class Player : MonoBehaviour
         }
         else{
             ll = vals[cur] * lcoef;
+            // Debug.Log(vals[cur] - vals[(cur == duration-1) ? 0 : cur+1]);
             //Shoot
-            if((delta = vals[cur] - vals[(cur == duration-1) ? 0 : cur+1]) > toShoot || P.stickbtn){
+            if((delta = vals[(cur == duration-1) ? 0 : cur+1] - vals[cur]) > toShoot || P.stickbtn){
+                StartCoroutine(pause());
                 cameraAnim.speed = 1f;
-                bow.Shoot(scoef);
+                bow.Shoot(scoef * delta);
                 ll = 0f;
+                Debug.Log(delta * scoef);
+            
                 CBAnim.SetFloat(draw, 0);
-                StartCoroutine(Knockback(vals[cur] * scoef));
+                StartCoroutine(Knockback(delta));
                 temp = Random.Range(3, 5);
                 P.auso[temp].volume = volCoef * vals[cur];
                 P.auso[temp].Play();
@@ -127,6 +139,12 @@ public class Player : MonoBehaviour
         rb.AddForce(-f * P.camera.forward);
         yield return new WaitForSeconds(reloadCooldown);
         movable = true;
+    }
+    IEnumerator pause()
+    {
+        paused = true;
+        yield return new WaitForSeconds(.8f);
+        paused = false;
     }
 
 }

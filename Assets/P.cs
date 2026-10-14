@@ -117,8 +117,8 @@ public class P : MonoBehaviour
                 {
                     fdata[i] = BitConverter.ToSingle(temp, 1+i*4);   
                 }
-                idata[0] = BitConverter.ToInt32(temp, 33);
-                idata[1] = BitConverter.ToInt32(temp, 25);
+                idata[0] = BitConverter.ToInt32(temp, 29);
+                idata[1] = BitConverter.ToInt32(temp, 33);
 
                 toStart = true;
                 // 이번 FixedUpdate에서는 한 패킷만 사용
@@ -183,6 +183,7 @@ public class SC{
     
     int e = 0;
     float delta;
+    // public bool paused = false;
 
     readonly float rest;
     readonly float alpha;

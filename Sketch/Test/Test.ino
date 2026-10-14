@@ -4,14 +4,14 @@
 #include <Adafruit_Sensor.h>
 
 #define calibration_factor 100 //캘리브레이션 값
-#define DOUT  2 //데이터 핀
-#define CLK  3// 클럭 핀
+#define DOUT  3 //데이터 핀
+#define CLK  4// 클럭 핀
 
 #define VRX A7
 #define VRY A6
-#define SW 4
+#define SW 5
 
-#define VIB 5
+#define VIB 6
 
 Adafruit_MPU6050 mpu;
 sensors_event_t a, g, temp;

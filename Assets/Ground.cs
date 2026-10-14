@@ -16,6 +16,6 @@ public class Ground : MonoBehaviour, Target
         arrow.rb.isKinematic = true;
         P.auso[2].volume = 10 / Vector3.SqrMagnitude(P.player.position - contact.point);
         P.auso[2].Play();
-        StartCoroutine(destroyAfter(5, arrow));
+        StartCoroutine(destroyAfter(5, arrow.gameObject));
     }
 }

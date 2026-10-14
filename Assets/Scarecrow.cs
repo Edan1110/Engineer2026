@@ -17,7 +17,7 @@ public class Scarecrow : MonoBehaviour, Target
     }
     void Update()
     {
-        if(!start) return;
+        if(!start || rotvec != Vector3.zero) return;
         pos = piv.position;
         transform.rotation = Quaternion.AngleAxis(ang * angper, rotvec);
         transform.position += pos - piv.position;
@@ -27,7 +27,7 @@ public class Scarecrow : MonoBehaviour, Target
         vec = Vector3.ProjectOnPlane(arrow.rb.linearVelocity, piv.up);
         ang = 100 * vec.sqrMagnitude;
         anim.SetTrigger(hit);
-        rotvec = Vector3.Cross(piv.up, vec);
+        rotvec = Vector3.Cross(piv.up, arrow.rb.linearVelocity);
 
         arrow.rb.linearVelocity = Vector3.zero;
         arrow.rb.angularVelocity = Vector3.zero;

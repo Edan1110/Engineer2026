@@ -6,7 +6,7 @@ using System.Collections;
 public class Bow : MonoBehaviour
 {
     [SerializeField] Transform arrowBox, arrowPref;
-    float loadf;
+    // float loadf;
     Transform topStr, botStr, mid, torustop, torusbot, midtop, midbot, arrowtr;
     Arrow arrow = null;
     Animator bowAnim, arrowAnim;
@@ -60,8 +60,9 @@ public class Bow : MonoBehaviour
     {
         if(arrow.state == ArrowState.load){
             arrowtr.SetParent(null, true);
-            arrow.Shoot(loadf*fcoef);
+            arrow.Shoot(fcoef);
             StartCoroutine(recoverString(10));
+            StartCoroutine(Ground.destroyAfter(10, arrow.gameObject));
             bowAnim.SetTrigger(shoot);
             bowAnim.SetBool(bowload, false);
             arrowAnim.SetBool(bowload, false);
@@ -97,7 +98,7 @@ public class Bow : MonoBehaviour
     }
     public void setLoad(float x)
     {
-        loadf = x;
+        // loadf = x;
         arrowtr.localPosition = Vector3.back * x;
         if(arrow.state == ArrowState.load)setMidPos(arrowtr.position);
     }

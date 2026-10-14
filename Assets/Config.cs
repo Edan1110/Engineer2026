@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 public class Config : MonoBehaviour
 {
-    public static string port;
+    public static string port = "COM4";
     public static float[] fdata; 
     public static int[] idata;
 
@@ -27,8 +27,9 @@ public class Config : MonoBehaviour
         {
             fleng = fdataname.Length;
             ileng = idataname.Length;
-            fdata = new float[fleng];
-            idata = new int[ileng];
+            fdata = new float[]{10, 0, 6, 0, -6, 2e-4F, 0.01f, 1, 100, 10, 1000, 800};
+            // fdata = new float[fleng];
+            idata = new int[]{5};
             init = false;
             inputs = new TMP_InputField[fleng + ileng + 1];
         }
@@ -37,7 +38,7 @@ public class Config : MonoBehaviour
         temp.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
         inputs[0] = temp.GetComponent<TMP_InputField>();
         inputs[0].placeholder.GetComponent<TextMeshProUGUI>().text = "port";
-
+        inputs[0].text = port;
         for(int i = 0; i<fleng; i++)
         {
             temp = Instantiate(inputfield, transform);
