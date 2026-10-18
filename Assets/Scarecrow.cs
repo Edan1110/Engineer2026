@@ -3,36 +3,34 @@ using UnityEngine;
 
 public class Scarecrow : MonoBehaviour, Target
 {
-    Transform piv;
-    Vector3 pos, vec = Vector3.zero, rotvec;
-    float ang = 0f;
-    int hit = Animator.StringToHash("hit");
-    Animator anim;
-    public float angper = 0f;
-    public bool start = false;
-    void Start()
+    bool trigger = false;
+    float t = 0;
+    public void onHit(ContactPoint contact,Arrow arrow)
     {
-        piv = transform.GetChild(0);
-        anim = GetComponent<Animator>();
+        arrow.rb.linearVelocity = Vector3.zero;
+        arrow.rb.angularVelocity = Vector3.zero;
+        // arrow.rb.isKinematic = true;
+        P.auso.PlayOneShot(P.audios[2], 100 / Vector3.SqrMagnitude(P.player.transform.position - contact.point));
+        StartCoroutine(P.player.Get3());
+
     }
     void Update()
     {
-        if(!start || rotvec != Vector3.zero) return;
-        pos = piv.position;
-        transform.rotation = Quaternion.AngleAxis(ang * angper, rotvec);
-        transform.position += pos - piv.position;
+        if (trigger)
+        {
+            t += Time.deltaTime;
+            transform.position = new Vector3(5 - t * 2, 0.1f, -26);
+            if(t>9) {trigger = false; Destroy(gameObject);}
+        }   
     }
-    public void onHit(ContactPoint contact,Arrow arrow)
-    {
-        vec = Vector3.ProjectOnPlane(arrow.rb.linearVelocity, piv.up);
-        ang = 100 * vec.sqrMagnitude;
-        anim.SetTrigger(hit);
-        rotvec = Vector3.Cross(piv.up, arrow.rb.linearVelocity);
 
-        arrow.rb.linearVelocity = Vector3.zero;
-        arrow.rb.angularVelocity = Vector3.zero;
-        arrow.rb.isKinematic = true;
-        P.auso[2].volume = 100 / Vector3.SqrMagnitude(P.player.position - contact.point);
-        P.auso[2].Play();
+    public void emerge()
+    {
+        // if(trig)
+        t = 0;
+        transform.rotation = Quaternion.Euler(0, 130, 0);
+        transform.position = new Vector3(5f, 0.1f, -26);
+        trigger = true;
+        
     }
 }

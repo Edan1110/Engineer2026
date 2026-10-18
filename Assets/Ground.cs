@@ -14,8 +14,7 @@ public class Ground : MonoBehaviour, Target
         arrow.rb.linearVelocity = Vector3.zero;
         arrow.rb.angularVelocity = Vector3.zero;
         arrow.rb.isKinematic = true;
-        P.auso[2].volume = 10 / Vector3.SqrMagnitude(P.player.position - contact.point);
-        P.auso[2].Play();
+        // P.auso.PlayOneShot(P.audios[2], 10 / Vector3.SqrMagnitude(P.player.position - contact.point));
         StartCoroutine(destroyAfter(5, arrow.gameObject));
     }
 }

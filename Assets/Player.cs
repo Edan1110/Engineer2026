@@ -1,5 +1,10 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.Rendering;
+using UnityEngine.UI;
+using TMPro;
+using UnityEngine.SceneManagement;
+
 
 
 
@@ -7,14 +12,25 @@ public class Player : MonoBehaviour
 {
     
 
-    float mvSpeed = Config.fdata[0], gxzero = Config.fdata[1],
+    Volume v;
+    public AudioClip[] auds; 
+    public RawImage img;
+    public TMP_Text timer, sctxt;
+    Animator scanim;
+    Color c;
+    readonly float mvSpeed = Config.fdata[0], gxzero = Config.fdata[1],
     gxcoef = Config.fdata[2], gyzero = Config.fdata[3], 
     gycoef  = Config.fdata[4], lcoef = Config.fdata[5], 
     scoef = Config.fdata[6], reloadCooldown = Config.fdata[7],
-    volCoef = Config.fdata[8], delta, mag, d = 0, ll, toLoad = Config.fdata[10], toShoot = Config.fdata[11];
-    int cur = -1, temp, speed = Animator.StringToHash("Speed"), 
+    volCoef = Config.fdata[8],  toLoad = Config.fdata[10], toShoot = Config.fdata[11];
+    float delta, mag, d = 0, ll;
+    readonly int speed = Animator.StringToHash("Speed"), 
     animSpeed = Animator.StringToHash("animSpeed"), 
+    idleSpeed = Animator.StringToHash("idleSpeed"), get = Animator.StringToHash("Get"),
     draw = Animator.StringToHash("draw"), duration = Config.idata[0];
+
+    int cur = -1;
+    public static int score;
     float[] vals;
     bool movable = true, paused = false;
     Rigidbody rb;
@@ -25,14 +41,54 @@ public class Player : MonoBehaviour
     Bow bow;
     Animator cameraAnim, CBAnim;
 
+    public void Get1()
+    {
+        scanim.SetTrigger(get);
+        score += 1;
+        sctxt.text = score.ToString();
+    }
+    public IEnumerator Get3()
+    {
+        scanim.SetTrigger(get);
+    
+        int start = score;
+        score += 3;
+    
+        for (int i = start; i <= score; i++)
+        {
+            sctxt.text = i.ToString();
+            yield return new WaitForSeconds(2f / 7f);
+        }
+    }
+    IEnumerator setTimer()
+    {
+        yield return new WaitUntil(()=>P.toStart);
+        for(int i = Config.idata[1]; i>=0; i--){
+            if(i == 10){
+                timer.color = Color.red;
+                P.auso.PlayOneShot(P.audios[6]);
+            }
+            timer.text = i.ToString();
+            yield return new WaitForSeconds(1);
+        }
+        SceneManager.LoadScene("End");
+    }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        score = 0;
+        P.toStart = false;
+        StartCoroutine(setTimer());
+        c = img.color;
+        v = GetComponent<Volume>();
+        scanim = sctxt.GetComponent<Animator>();
+        P.audios = auds;
+        P.auso = GetComponent<AudioSource>();
         vals = new float[duration];
-        P.camera = CB.GetChild(1);
+        P.camera = CB.GetChild(1).GetComponent<Camera>();
         rb = GetComponent<Rigidbody>();
         bow = CB.GetChild(0).GetComponent<Bow>();
-        cameraAnim = P.camera.GetComponent<Animator>();
+       cameraAnim = P.camera.GetComponent<Animator>();
         CBAnim = CB.GetComponent<Animator>();
     }
     
@@ -87,9 +143,11 @@ public class Player : MonoBehaviour
 
             if(vals[cur]>toLoad && d > reloadCooldown)
             {
-                P.auso[0].Play();
+                P.auso.PlayOneShot(auds[0]);
                 StartCoroutine(bow.Load(Random.value < 0.5f));
-                cameraAnim.speed = 0f;
+                cameraAnim.SetFloat(idleSpeed, 0f);
+                // cameraAnim.speed = 0f;
+                StartCoroutine(campause());
             }   
         }
         else{
@@ -97,29 +155,29 @@ public class Player : MonoBehaviour
             // Debug.Log(vals[cur] - vals[(cur == duration-1) ? 0 : cur+1]);
             //Shoot
             if((delta = vals[(cur == duration-1) ? 0 : cur+1] - vals[cur]) > toShoot || P.stickbtn){
-                StartCoroutine(pause());
-                cameraAnim.speed = 1f;
+                cameraAnim.SetFloat(idleSpeed, 1f);
                 bow.Shoot(scoef * delta);
                 ll = 0f;
                 Debug.Log(delta * scoef);
             
                 CBAnim.SetFloat(draw, 0);
-                StartCoroutine(Knockback(delta));
-                temp = Random.Range(3, 5);
-                P.auso[temp].volume = volCoef * vals[cur];
-                P.auso[temp].Play();
+                // StartCoroutine(Knockback(delta));
+                P.auso.PlayOneShot(auds[Random.Range(3, 6)], volCoef * delta);
                 P.vib = 0;
                 d = 0f;
+                
+                StartCoroutine(camunpause(true));
             }
             //Unload
             else if (vals[cur] < toLoad)
             {
-                cameraAnim.speed = 1f;
+                cameraAnim.SetFloat(idleSpeed, 1f);
                 d = 0f;
                 P.vib = 0;
                 ll = 0f;
                 CBAnim.SetFloat(draw, 0);
                 bow.Unload();
+                StartCoroutine(camunpause(false));
             }
             //Set
             else
@@ -136,15 +194,38 @@ public class Player : MonoBehaviour
     {
         movable = false;
         rb.linearVelocity = Vector3.zero;
-        rb.AddForce(-f * P.camera.forward);
+        rb.AddForce(-f * P.camera.transform.forward);
         yield return new WaitForSeconds(reloadCooldown);
         movable = true;
     }
-    IEnumerator pause()
+    IEnumerator campause()
     {
+        rx.stop();
+        ry.stop();
         paused = true;
-        yield return new WaitForSeconds(.8f);
-        paused = false;
+        for(int i = 1; i<21; i++)
+        {
+            if(i<16){
+                v.weight = c.a = i/16f;
+                img.color = c;
+            }
+            P.camera.fieldOfView = 60 - i/2f;
+            yield return null;
+        }
     }
+    IEnumerator camunpause(bool wait)
+    {
+        if(wait) yield return new WaitForSeconds(0.7f);
+        paused = false;
+        for(int i = 1; i<21; i++)
+        {
+            if(i>4){
+                v.weight = c.a = (20-i)/15f;
+                img.color = c;
+            }
 
+            P.camera.fieldOfView = 40 + i/2f;
+            yield return null;
+        }
+    }
 }

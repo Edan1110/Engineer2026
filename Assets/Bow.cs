@@ -62,7 +62,6 @@ public class Bow : MonoBehaviour
             arrowtr.SetParent(null, true);
             arrow.Shoot(fcoef);
             StartCoroutine(recoverString(10));
-            StartCoroutine(Ground.destroyAfter(10, arrow.gameObject));
             bowAnim.SetTrigger(shoot);
             bowAnim.SetBool(bowload, false);
             arrowAnim.SetBool(bowload, false);

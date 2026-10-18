@@ -10,10 +10,12 @@ public class Arrow : MonoBehaviour
     Target t;
     
     Vector3 tailVelocity;
-
+    TrailRenderer tr;
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        tr = GetComponent<TrailRenderer>();
+        tr.enabled = false;
         // Debug.Log("rb");
         state = ArrowState.loading;
         tail = transform.GetChild(0);
@@ -36,17 +38,19 @@ public class Arrow : MonoBehaviour
 
     public void Shoot(float f)
     {
+        tr.enabled = true;
         rb.isKinematic = false;
         rb.detectCollisions = true;
         rb.useGravity = true;
         rb.AddForce(transform.forward * f, ForceMode.Force);
         state = ArrowState.shot;
+        StartCoroutine(Ground.destroyAfter(15, gameObject));
     }
 
     void FixedUpdate()
     {
         // return;
-        if(transform.position.y < -20) Destroy(gameObject);
+        // if(transform.position.y < -20) Destroy(gameObject);
         if (state == ArrowState.shot){
             Vector3 temp = rb.GetPointVelocity(tail.position);
             tailVelocity = temp - Vector3.Project(temp, transform.forward);
@@ -61,7 +65,7 @@ public class Arrow : MonoBehaviour
         if(collision.gameObject.CompareTag("Target")){
             bool tipHit = false;
             ContactPoint tipContact = default;
-
+            // tr.enabled = false;
             foreach(ContactPoint contact in collision.contacts)
             {
                 if(contact.thisCollider == tipCollider)
@@ -77,11 +81,12 @@ public class Arrow : MonoBehaviour
 
             rb.detectCollisions = false;
             t = collision.gameObject.GetComponent<Target>();
+            transform.SetParent(collision.transform);
             if (t == null)
             {
                 rb.linearVelocity = Vector3.zero;
                 rb.angularVelocity = Vector3.zero;
-                rb.isKinematic = true;
+                // rb.isKinematic = true;
             }
             else t.onHit(tipContact, this);
             state = ArrowState.hit;

@@ -615,6 +615,7 @@ MonoBehaviour:
   - To shoot
   idataname:
   - DeltaDuration
+  - Timer
 --- !u!1 &2023248708
 GameObject:
   m_ObjectHideFlags: 0

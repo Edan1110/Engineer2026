@@ -13,9 +13,11 @@ public interface Target
 
 public class P : MonoBehaviour
 {
-    static public Transform player, camera;
+    static public Player player; 
+    static public Camera camera;
 
-    static public AudioSource[] auso;
+    static public AudioSource auso;
+    static public AudioClip[] audios;
     Keyboard k;
 
     [Header("Serial")]
@@ -41,13 +43,13 @@ public class P : MonoBehaviour
     {
         idata = new int[2];
         fdata = new float[7];
-        player = transform;
+        player = GetComponent<Player>();
     }
 
     void Start()
     {
         k = Keyboard.current;
-        auso = GetComponents<AudioSource>();
+        auso = GetComponent<AudioSource>();
 
         try
         {
@@ -176,6 +178,7 @@ public class P : MonoBehaviour
         serial.Dispose();
         serial = null;
     }
+
 }
 
 public class SC{
@@ -223,6 +226,13 @@ public class SC{
         if(delta == 0) value = target;
         else value += delta;
     }
+
+    public void stop()
+    {
+        target = value;
+        Array.Clear(queori, 0, reas);
+    }
+
     public void update()
     {
         update(target);

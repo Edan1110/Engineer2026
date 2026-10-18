@@ -27,9 +27,9 @@ public class Config : MonoBehaviour
         {
             fleng = fdataname.Length;
             ileng = idataname.Length;
-            fdata = new float[]{10, 0, 6, 0, -6, 2e-4F, 0.01f, 1, 100, 10, 1000, 800};
+            fdata = new float[]{10, 0, 6, 0, -6, 2e-4F, 0.015f, 1.1f, 0.001f, 1, 1000, 800};
             // fdata = new float[fleng];
-            idata = new int[]{5};
+            idata = new int[]{5, 60};
             init = false;
             inputs = new TMP_InputField[fleng + ileng + 1];
         }

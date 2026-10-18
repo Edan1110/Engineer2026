@@ -461,6 +461,7 @@ GameObject:
   - component: {fileID: 107031632931395680}
   - component: {fileID: 2182249259525293413}
   - component: {fileID: 6253233400035653637}
+  - component: {fileID: 1637680967410467975}
   - component: {fileID: 7275681723679478453}
   m_Layer: 0
   m_Name: Cube.143
@@ -541,6 +542,18 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &1637680967410467975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5459821314384525327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99883e1159deffa46b45a8c31ffb37bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScarecrowCube
 --- !u!136 &7275681723679478453
 CapsuleCollider:
   m_ObjectHideFlags: 0
